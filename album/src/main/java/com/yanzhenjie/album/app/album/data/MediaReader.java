@@ -18,6 +18,7 @@ package com.yanzhenjie.album.app.album.data;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
+import android.media.MediaMetadataRetriever;
 import android.os.FileUtils;
 import android.provider.MediaStore;
 import android.support.annotation.WorkerThread;
@@ -253,14 +254,24 @@ public class MediaReader {
         }
 
 
+
+        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+
         for (File filepath: fileList) {
             AlbumFile videoFile = new AlbumFile();
             videoFile.setMediaType(AlbumFile.TYPE_VIDEO);
             videoFile.setPath(filepath.getAbsolutePath());
 
-            String bucketName = videoFile.getBucketName();
-            videoFile.setBucketName(bucketName);
+            try {
+//                mmr.setDataSource(filepath.getAbsolutePath());
+//                videoFile.setDuration(Long.parseLong(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)));
+//                videoFile.setBucketName(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
+                videoFile.setBucketName(filepath.getParent());  // bucket by directory
+            } catch (Exception e) {
+//                mmr = new MediaMetadataRetriever();
+            }
 
+            String bucketName = videoFile.getBucketName();
 
             allFileFolder.addAlbumFile(videoFile);
             AlbumFolder albumFolder = albumFolderMap.get(bucketName);
