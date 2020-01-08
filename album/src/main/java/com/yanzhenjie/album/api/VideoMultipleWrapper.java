@@ -88,6 +88,9 @@ public final class VideoMultipleWrapper extends BasicChoiceVideoWrapper<VideoMul
         intent.putExtra(Album.KEY_INPUT_CAMERA_QUALITY, mQuality);
         intent.putExtra(Album.KEY_INPUT_CAMERA_DURATION, mLimitDuration);
         intent.putExtra(Album.KEY_INPUT_CAMERA_BYTES, mLimitBytes);
+
+        intent.putExtra(Album.KEY_INPUT_DIRECTORY, directoryPath);
+
         mContext.startActivity(intent);
     }
 }

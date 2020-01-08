@@ -97,6 +97,8 @@ public class AlbumActivity extends BaseActivity implements
 
     private MediaReadTask mMediaReadTask;
 
+    private String directoryPath;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -124,6 +126,9 @@ public class AlbumActivity extends BaseActivity implements
         mLimitDuration = argument.getLong(Album.KEY_INPUT_CAMERA_DURATION);
         mLimitBytes = argument.getLong(Album.KEY_INPUT_CAMERA_BYTES);
         mFilterVisibility = argument.getBoolean(Album.KEY_INPUT_FILTER_VISIBILITY);
+
+        directoryPath = argument.getString(Album.KEY_INPUT_DIRECTORY);
+
     }
 
     /**
@@ -155,7 +160,13 @@ public class AlbumActivity extends BaseActivity implements
     @Override
     protected void onPermissionGranted(int code) {
         ArrayList<AlbumFile> checkedList = getIntent().getParcelableArrayListExtra(Album.KEY_INPUT_CHECKED_LIST);
-        MediaReader mediaReader = new MediaReader(this, sSizeFilter, sMimeFilter, sDurationFilter, mFilterVisibility);
+
+        MediaReader mediaReader;
+        if (directoryPath != null) {
+            mediaReader = new MediaReader(this, sSizeFilter, sMimeFilter, sDurationFilter, mFilterVisibility, directoryPath);
+        } else {
+            mediaReader = new MediaReader(this, sSizeFilter, sMimeFilter, sDurationFilter, mFilterVisibility);
+        }
         mMediaReadTask = new MediaReadTask(mFunction, checkedList, mediaReader, this);
         mMediaReadTask.execute();
     }

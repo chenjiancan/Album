@@ -18,6 +18,7 @@ package com.yanzhenjie.album.app.album.data;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
+import android.os.FileUtils;
 import android.provider.MediaStore;
 import android.support.annotation.WorkerThread;
 
@@ -26,6 +27,11 @@ import com.yanzhenjie.album.AlbumFolder;
 import com.yanzhenjie.album.Filter;
 import com.yanzhenjie.album.R;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,6 +49,8 @@ public class MediaReader {
     private Filter<Long> mDurationFilter;
     private boolean mFilterVisibility;
 
+    private String directoryPath;
+
     public MediaReader(Context context, Filter<Long> sizeFilter, Filter<String> mimeFilter, Filter<Long> durationFilter, boolean filterVisibility) {
         this.mContext = context;
 
@@ -50,6 +58,17 @@ public class MediaReader {
         this.mMimeFilter = mimeFilter;
         this.mDurationFilter = durationFilter;
         this.mFilterVisibility = filterVisibility;
+    }
+
+    public MediaReader(Context context, Filter<Long> sizeFilter, Filter<String> mimeFilter, Filter<Long> durationFilter, boolean filterVisibility, String directoryPath) {
+        this.mContext = context;
+
+        this.mSizeFilter = sizeFilter;
+        this.mMimeFilter = mimeFilter;
+        this.mDurationFilter = durationFilter;
+        this.mFilterVisibility = filterVisibility;
+
+        this.directoryPath = directoryPath;
     }
 
     /**
@@ -201,6 +220,64 @@ public class MediaReader {
         }
     }
 
+    @WorkerThread
+    private void scanVideoFile(Map<String, AlbumFolder> albumFolderMap, AlbumFolder allFileFolder, String folder) {
+
+        File directory = new File(folder);
+        if (!directory.exists()) return;
+
+        ArrayList<File> fileList = new ArrayList<File>(100);
+        ArrayList<File> directoryList = new ArrayList<File>(20);
+
+        directoryList.add(directory);
+
+        while (directoryList.size() > 0) {
+            File dir = directoryList.remove(0);
+
+            File[] list = dir.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File file) {
+                    return file.isDirectory() || file.getAbsolutePath().toLowerCase().endsWith(".mp4");
+                }
+            });
+
+            for (File file : list) {
+                if (file.isDirectory()) {
+                    directoryList.add(file);
+                } else {
+                    fileList.add(file);
+                }
+            }
+
+
+        }
+
+
+        for (File filepath: fileList) {
+            AlbumFile videoFile = new AlbumFile();
+            videoFile.setMediaType(AlbumFile.TYPE_VIDEO);
+            videoFile.setPath(filepath.getAbsolutePath());
+
+            String bucketName = videoFile.getBucketName();
+            videoFile.setBucketName(bucketName);
+
+
+            allFileFolder.addAlbumFile(videoFile);
+            AlbumFolder albumFolder = albumFolderMap.get(bucketName);
+
+            if (albumFolder != null)
+                albumFolder.addAlbumFile(videoFile);
+            else {
+                albumFolder = new AlbumFolder();
+                albumFolder.setName(bucketName);
+                albumFolder.addAlbumFile(videoFile);
+
+                albumFolderMap.put(bucketName, albumFolder);
+            }
+        }
+    }
+
+
     /**
      * Scan the list of pictures in the library.
      */
@@ -235,8 +312,11 @@ public class MediaReader {
         allFileFolder.setChecked(true);
         allFileFolder.setName(mContext.getString(R.string.album_all_videos));
 
-        scanVideoFile(albumFolderMap, allFileFolder);
-
+        if (directoryPath!=null) {
+            scanVideoFile(albumFolderMap, allFileFolder, directoryPath);
+        } else  {
+            scanVideoFile(albumFolderMap, allFileFolder);
+        }
         ArrayList<AlbumFolder> albumFolders = new ArrayList<>();
         Collections.sort(allFileFolder.getAlbumFiles());
         albumFolders.add(allFileFolder);

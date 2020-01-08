@@ -83,6 +83,7 @@ public class VideoActivity extends AppCompatActivity {
                 .selectCount(6)
                 .camera(true)
                 .checkedList(mAlbumFiles)
+//                .directoryPath("TARGET_DIR")
                 .widget(
                         Widget.newDarkBuilder(this)
                                 .title(mToolbar.getTitle().toString())

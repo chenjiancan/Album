@@ -31,6 +31,8 @@ public abstract class BasicChoiceVideoWrapper<Returner extends BasicChoiceVideoW
     long mLimitDuration = Integer.MAX_VALUE;
     long mLimitBytes = Integer.MAX_VALUE;
 
+    String directoryPath = null;
+
     /**
      * Set the quality when taking video, should be 0 or 1. Currently value 0 means low quality, and value 1 means high quality.
      *
@@ -58,6 +60,11 @@ public abstract class BasicChoiceVideoWrapper<Returner extends BasicChoiceVideoW
      */
     public Returner limitBytes(@IntRange(from = 1) long bytes) {
         this.mLimitBytes = bytes;
+        return (Returner) this;
+    }
+
+    public Returner directoryPath(String path) {
+        this.directoryPath = path;
         return (Returner) this;
     }
 }
